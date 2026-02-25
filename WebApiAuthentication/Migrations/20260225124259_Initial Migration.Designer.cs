@@ -11,15 +11,15 @@ using WebApiAuthentication.DataAccess.Context;
 namespace WebApiAuthentication.Migrations
 {
     [DbContext(typeof(ReviewContext))]
-    [Migration("20230606090454_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260225124259_Initial Migration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);

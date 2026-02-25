@@ -1,18 +1,15 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using WebApiAuthentication.Authentication;
+﻿using Microsoft.EntityFrameworkCore;
 using WebApiAuthentication.DataAccess.Entities;
 
 namespace WebApiAuthentication.DataAccess.Context
 {
-    public class ReviewContext : IdentityDbContext
+    public class ReviewContext : DbContext
     {
         public ReviewContext(DbContextOptions<ReviewContext> options)
-            :base(options)
-        {            
+            : base(options)
+        {
         }
 
         public DbSet<BookReview> BookReviews { get; set; }
-        public DbSet<LibraryUser> LibraryUsers { get; set; }
     }
 }

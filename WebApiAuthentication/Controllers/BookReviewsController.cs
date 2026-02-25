@@ -1,17 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using WebApiAuthentication.DataAccess.Entities;
 using WebApiAuthentication.DataAccess.Repositories;
 
 namespace WebApiAuthentication.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class BookReviewsController : ControllerBase
+    public class BookReviewsController(IReviewRepository reviewRepository) : ControllerBase
     {
-        private readonly IReviewRepository _reviewRepository;
+        private readonly IReviewRepository _reviewRepository = reviewRepository;
 
         private static bool ValidateReview(BookReview bookReview)
         {
@@ -20,13 +17,10 @@ namespace WebApiAuthentication.Controllers
                 && bookReview.Rating <= 5;
         }
 
-        public BookReviewsController(IReviewRepository reviewRepository)
-        {
-            _reviewRepository = reviewRepository;
-        }
-
+        // Because I'm using ActionResult<T> I don't need to specify the type
+        // in the ProducesResponseType attribute.
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<BookReview>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Description = "Gets all the book reviews.")]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult<IEnumerable<BookReview>> Get()
         {
