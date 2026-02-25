@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using WebApiAuthentication.Authentication;
 using WebApiAuthentication.DataAccess.Context;
 using WebApiAuthentication.DataAccess.Repositories;
 
@@ -11,6 +13,11 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<ReviewContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddIdentity<LibraryUser, IdentityRole>(
+    opts => opts.User.AllowedUserNameCharacters += " ")
+    .AddEntityFrameworkStores<ReviewContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.AddScoped<IReviewRepository, SqlServerRepository>();
 
