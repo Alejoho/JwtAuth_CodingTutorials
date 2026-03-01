@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="BlazorWasmAuthentication/BlazorWasmAuthentication.csproj" />
+  <Project Path="WebApiAuthentication/WebApiAuthentication.csproj" />
+</Solution>
