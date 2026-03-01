@@ -1,0 +1,20 @@
+meta {
+  name: Get All Reviews
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://10.10.10.102:7259/api/bookreviews
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{jwt}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

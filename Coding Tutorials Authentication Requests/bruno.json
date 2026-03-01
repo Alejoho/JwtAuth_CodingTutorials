@@ -1,0 +1,15 @@
+{
+  "version": "1",
+  "name": "Coding Tutorials Authentication Requests",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ],
+  "size": 0,
+  "filesCount": 0,
+  "presets": {
+    "requestType": "http",
+    "requestUrl": "https://10.10.10.102:7259"
+  }
+}
