@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Text;
 using WebApiAuthentication.Authentication;
 using WebApiAuthentication.DataAccess.Context;
 using WebApiAuthentication.DataAccess.Repositories;
@@ -21,6 +24,25 @@ builder.Services.AddIdentity<LibraryUser, IdentityRole>(
 
 builder.Services.AddScoped<IReviewRepository, SqlServerRepository>();
 
+builder.Services.AddAuthentication(opts =>
+{
+    opts.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    opts.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    opts.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(opts =>
+{
+    opts.SaveToken = true;
+    opts.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidIssuer = builder.Configuration["Jwt:ValidIssuer"],
+        ValidAudiences = builder.Configuration.GetSection("Jwt:ValidAudiences").Get<string[]>(),
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(
+                builder.Configuration["Jwt:Secret"]
+                ?? throw new InvalidOperationException("Secret not configured")))
+    };
+});
+
 var app = builder.Build();
 
 {
@@ -34,6 +56,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

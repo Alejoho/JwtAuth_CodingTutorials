@@ -17,7 +17,7 @@ public class AuthenticationController(UserManager<LibraryUser> userManager,
     private readonly UserManager<LibraryUser> _userManager = userManager;
     private readonly IConfiguration _config = _config;
 
-    [HttpPost("Register")]
+    [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -76,7 +76,7 @@ public class AuthenticationController(UserManager<LibraryUser> userManager,
             _config["Jwt:Secret"] ?? throw new InvalidOperationException("Secret not configured")));
 
         var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
+            issuer: _config["Jwt:ValidIssuer"],
             expires: DateTime.Now.AddHours(3),
             claims: authClaims,
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
