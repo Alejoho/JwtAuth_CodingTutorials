@@ -89,3 +89,10 @@ form div {
     form div:first-child {
         margin-top: 0.5rem;
     }
+
+.container {
+    border: 1px solid black;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: .5rem;
+}

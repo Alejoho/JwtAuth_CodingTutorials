@@ -4,23 +4,25 @@
 
 @if (ErrorMessage is null)
 {
-    <table>
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Rating</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var review in ReviewList)
-            {
+    <Container>
+        <table>
+            <thead>
                 <tr>
-                    <td>@review.Title</td>
-                    <td>@review.Rating</td>
+                    <th>Title</th>
+                    <th>Rating</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var review in ReviewList)
+                {
+                    <tr>
+                        <td>@review.Title</td>
+                        <td>@review.Rating</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </Container>
 }
 else
 {
