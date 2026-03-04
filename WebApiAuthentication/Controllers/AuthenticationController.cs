@@ -75,9 +75,12 @@ public class AuthenticationController(UserManager<LibraryUser> userManager,
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
             _config["Jwt:Secret"] ?? throw new InvalidOperationException("Secret not configured")));
 
+        int expLapse = Convert.ToInt32(_config["Jwt:HoursToExpire"]
+                ?? throw new InvalidOperationException("Expiration lapse not configured"));
+
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:ValidIssuer"],
-            expires: DateTime.Now.AddHours(3),
+            expires: DateTime.UtcNow.AddHours(expLapse),
             claims: authClaims,
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
