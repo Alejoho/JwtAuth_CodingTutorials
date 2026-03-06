@@ -15,8 +15,19 @@ builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddDbContext<ReviewContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<ReviewContext>(opts =>
+{
+    opts.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        opts =>
+        {
+            // These 2 lines are for trying to avoid a transient error when connecting
+            // to a dockered Sql Server instance
+            opts.CommandTimeout(5);
+            opts.EnableRetryOnFailure(10, TimeSpan.FromSeconds(3), [-2147467259]);
+
+        });
+});
 
 using var loggerFactory = LoggerFactory.Create(
     b => b.SetMinimumLevel(LogLevel.Trace).AddConsole());
