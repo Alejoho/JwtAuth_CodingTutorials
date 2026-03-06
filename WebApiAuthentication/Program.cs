@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using WebApiAuthentication.Authentication;
 using WebApiAuthentication.DataAccess.Context;
@@ -16,6 +17,9 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<ReviewContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+using var loggerFactory = LoggerFactory.Create(
+    b => b.SetMinimumLevel(LogLevel.Trace).AddConsole());
 
 builder.Services.AddIdentity<LibraryUser, IdentityRole>(
     opts => opts.User.AllowedUserNameCharacters += " ")
@@ -41,6 +45,11 @@ builder.Services.AddAuthentication(opts =>
             Encoding.UTF8.GetBytes(
                 builder.Configuration["Jwt:Secret"]
                 ?? throw new InvalidOperationException("Secret not configured")))
+    };
+    opts.Events = new JwtBearerEvents
+    {
+        OnChallenge = ctx => LogAttempt(ctx.Request.Headers, "OnChallenge"),
+        OnTokenValidated = ctx => LogAttempt(ctx.Request.Headers, "OnTokenValidated")
     };
 });
 
@@ -100,4 +109,24 @@ void PopulateDb()
     db.BookReviews.Add(new() { Title = "From Russia with Love", Rating = 3 });
 
     db.SaveChanges();
+}
+
+Task LogAttempt(IHeaderDictionary headers, string eventType)
+{
+    var logger = loggerFactory.CreateLogger<Program>();
+
+    var authorizationHeader = headers["Authorization"].FirstOrDefault();
+
+    if (authorizationHeader is null)
+        logger.LogInformation($"{eventType}. JWT not present");
+    else
+    {
+        string jwtString = authorizationHeader.Substring("Bearer ".Length);
+
+        var jwt = new JwtSecurityToken(jwtString);
+
+        logger.LogInformation($"{eventType}. Expiration: {jwt.ValidTo.ToLongTimeString()}. System time: {DateTime.UtcNow.ToLongTimeString()}");
+    }
+
+    return Task.CompletedTask;
 }

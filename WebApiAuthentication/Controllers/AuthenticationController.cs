@@ -11,11 +11,14 @@ namespace WebApiAuthentication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthenticationController(UserManager<LibraryUser> userManager,
-    IConfiguration _config) : ControllerBase
+public class AuthenticationController(
+    UserManager<LibraryUser> userManager,
+    IConfiguration _config,
+    ILogger<AuthenticationController> logger) : ControllerBase
 {
     private readonly UserManager<LibraryUser> _userManager = userManager;
     private readonly IConfiguration _config = _config;
+    private readonly ILogger<AuthenticationController> _logger = logger;
 
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -23,6 +26,8 @@ public class AuthenticationController(UserManager<LibraryUser> userManager,
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Register([FromBody] RegistrationDto dto)
     {
+        _logger.LogInformation("Register called");
+
         var existingUser = await _userManager.FindByNameAsync(dto.Username);
 
         if (existingUser != null)
@@ -42,6 +47,8 @@ public class AuthenticationController(UserManager<LibraryUser> userManager,
 
         if (result.Succeeded == false)
         {
+            _logger.LogInformation("Register succeeded");
+
             return StatusCode(StatusCodes.Status500InternalServerError,
                 $"Failed to create the new user: {string.Join(" ", result.Errors.Select(e => e.Description))}");
         }
@@ -54,6 +61,8 @@ public class AuthenticationController(UserManager<LibraryUser> userManager,
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
+        _logger.LogInformation("Login called");
+
         var user = await _userManager.FindByNameAsync(dto.Username);
 
         if (user is null || !await _userManager.CheckPasswordAsync(user, dto.Password))
@@ -84,9 +93,13 @@ public class AuthenticationController(UserManager<LibraryUser> userManager,
             claims: authClaims,
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
+        var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+        _logger.LogInformation("Login succeeded");
+
         return Ok(new LoginResponseDto
         {
-            JwtToken = new JwtSecurityTokenHandler().WriteToken(token),
+            JwtToken = jwt,
             Expiration = token.ValidTo
         });
     }
