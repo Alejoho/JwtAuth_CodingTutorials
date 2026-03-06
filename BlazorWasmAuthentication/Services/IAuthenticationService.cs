@@ -9,4 +9,5 @@ public interface IAuthenticationService
     ValueTask<string> GetJwtAsync();
     Task<DateTime> LoginAsync(LoginDto dto);
     Task LogOutAsync();
+    string GetUsername(string jwt);
 }

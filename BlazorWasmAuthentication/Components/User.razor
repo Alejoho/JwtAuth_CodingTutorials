@@ -14,8 +14,16 @@ else
     private string? _username;
     private bool _isLoggedIn => _username is not null;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        // check if there is a jwt in session
+        // if there is get the username
+        string jwt = await _authService.GetJwtAsync();
+        if(jwt is not null)
+        {
+            _username = _authService.GetUsername(jwt);
+        }
+
         _authService.LoginChanged += name =>
         {
             _username = name;

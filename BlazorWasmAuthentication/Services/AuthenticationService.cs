@@ -6,7 +6,9 @@ using System.Security.Claims;
 
 namespace BlazorWasmAuthentication.Services;
 
-public class AuthenticationService(IHttpClientFactory factory, ISessionStorageService sessionStorage) : IAuthenticationService
+public class AuthenticationService(
+    IHttpClientFactory factory,
+    ISessionStorageService sessionStorage) : IAuthenticationService
 {
     private readonly IHttpClientFactory _factory = factory;
     private readonly ISessionStorageService _sessionStorage = sessionStorage;
@@ -58,7 +60,7 @@ public class AuthenticationService(IHttpClientFactory factory, ISessionStorageSe
         LoginChanged?.Invoke(null);
     }
 
-    private static string GetUsername(string jwt)
+    public string GetUsername(string jwt)
     {
         var token = new JwtSecurityToken(jwt);
         var username = token.Claims.First(c => c.Type == ClaimTypes.Name).Value;

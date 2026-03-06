@@ -2,6 +2,7 @@
 @using BlazorWasmAuthentication.DTOs
 @using BlazorWasmAuthentication.Services
 @inject IAuthenticationService AuthService
+@inject NavigationManager NavManager
 
 <fieldset disabled="@(_expiration is not null)">
     <EditForm Model="@model" OnValidSubmit="SubmitAsync">
@@ -35,6 +36,18 @@
     private DateTime? _expiration;
     private string? _errorMessage;
 
+    protected override async Task OnInitializedAsync()
+    {
+        // check if the user is logged in by cheking the jwt in storage
+        string jwt = await AuthService.GetJwtAsync();
+
+        // if it is redirect to all reviews page
+        if (jwt is not null)
+        {
+            NavManager.NavigateTo("all-reviews");
+        }
+    }
+
     private async Task SubmitAsync()
     {
         try
@@ -49,4 +62,3 @@
         }
     }
 }
- 
