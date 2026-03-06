@@ -34,6 +34,7 @@ builder.Services.AddAuthentication(opts =>
     opts.SaveToken = true;
     opts.TokenValidationParameters = new TokenValidationParameters
     {
+        ClockSkew = TimeSpan.Zero,
         ValidIssuer = builder.Configuration["Jwt:ValidIssuer"],
         ValidAudiences = builder.Configuration.GetSection("Jwt:ValidAudiences").Get<string[]>(),
         IssuerSigningKey = new SymmetricSecurityKey(
