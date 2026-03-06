@@ -1,0 +1,27 @@
+﻿@using BlazorWasmAuthentication.Services
+@inject IAuthenticationService _authService
+
+@if (_isLoggedIn)
+{
+    <span>Welcome @_username <a @onclick="LogOutAsync">Logout</a></span>
+}
+else
+{
+    <NavLink href="login">Login</NavLink>
+}
+
+@code {
+    private string? _username;
+    private bool _isLoggedIn => _username is not null;
+
+    protected override void OnInitialized()
+    {
+        _authService.LoginChanged += name =>
+        {
+            _username = name;
+            StateHasChanged();
+        };
+    }
+
+    private async Task LogOutAsync() => await _authService.LogOutAsync();
+}

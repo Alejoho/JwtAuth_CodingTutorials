@@ -1,7 +1,9 @@
 ﻿@page "/login"
-@using BlazorWasmAuthentication.Models
+@using BlazorWasmAuthentication.DTOs
+@using BlazorWasmAuthentication.Services
+@inject IAuthenticationService AuthService
 
-<Container>
+<fieldset disabled="@(_expiration is not null)">
     <EditForm Model="@model" OnValidSubmit="SubmitAsync">
         <div>
             <label for="username">Username:</label>
@@ -9,19 +11,42 @@
         </div>
         <div>
             <label for="password">Password:</label>
-            <InputText typeof="password" @bind-Value="@model.Password" id="password" name="password" required />
+            <InputText type="password" autocomplete="off" @bind-Value="@model.Password" id="password" name="password" required />
         </div>
         <div>
             <button type="submit">Login</button>
         </div>
     </EditForm>
-</Container>
+</fieldset>
+
+@if (_expiration is not null)
+{
+    <p>You are logged in until @_expiration?.ToLocalTime().ToLongTimeString()</p>
+}
+
+@if (_errorMessage is not null)
+{
+    <p class="error">@_errorMessage</p>
+}
 
 @code {
-    private LoginModel model = new LoginModel();
+    private LoginDto model = new LoginDto();
+
+    private DateTime? _expiration;
+    private string? _errorMessage;
 
     private async Task SubmitAsync()
     {
-
+        try
+        {
+            _errorMessage = null;
+            _expiration = await AuthService.LoginAsync(model);
+        }
+        catch (Exception ex)
+        {
+            _expiration = null;
+            _errorMessage = ex.Message;
+        }
     }
 }
+ 

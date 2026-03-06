@@ -3,18 +3,14 @@ using System.Net.Http.Json;
 
 namespace BlazorWasmAuthentication.Services
 {
-    public class ReviewRepository : IReviewRepository
+    public class ReviewRepository(IHttpClientFactory factory) : IReviewRepository
     {
-        private readonly HttpClient _httpClient;
-
-        public ReviewRepository(HttpClient httpClient)
-        {
-            _httpClient = httpClient;
-        }
+        private readonly HttpClient _httpClient = factory.CreateClient(ConstantNames.ServerApiHttpClient);
+        private readonly IHttpClientFactory _factory = factory;
 
         public async Task<IEnumerable<BookReview>> GetReviewsAsync()
         {
-            return  await _httpClient.GetFromJsonAsync<BookReview[]>("api/BookReviews") ?? Array.Empty<BookReview>();
+            return await _httpClient.GetFromJsonAsync<BookReview[]>("api/BookReviews") ?? Array.Empty<BookReview>();
         }
 
         public async Task<IEnumerable<BookReview>> GetReviewSummariesAsync()

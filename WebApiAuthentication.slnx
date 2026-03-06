@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/SolutionItems/">
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+  </Folder>
   <Project Path="BlazorWasmAuthentication/BlazorWasmAuthentication.csproj" />
   <Project Path="WebApiAuthentication/WebApiAuthentication.csproj" />
 </Solution>

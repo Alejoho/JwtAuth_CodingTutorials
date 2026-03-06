@@ -63,7 +63,7 @@ public class AuthenticationController(UserManager<LibraryUser> userManager,
 
         List<Claim> authClaims = [
             new Claim(ClaimTypes.Name, dto.Username),
-            new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())];
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())];
 
         var audiences = _config.GetSection("Jwt:ValidAudiences").Get<List<string>>();
 
