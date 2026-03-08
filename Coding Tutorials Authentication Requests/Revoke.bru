@@ -1,0 +1,25 @@
+meta {
+  name: Revoke
+  type: http
+  seq: 5
+}
+
+delete {
+  url: https://10.10.10.102:7259/api/authentication/revoke
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+script:post-response {
+  // bru.setEnvVar("accessToken","");
+  // bru.setEnvVar("refreshToken","");
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

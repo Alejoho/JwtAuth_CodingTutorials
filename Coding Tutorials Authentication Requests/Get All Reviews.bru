@@ -1,7 +1,7 @@
 meta {
   name: Get All Reviews
   type: http
-  seq: 3
+  seq: 5
 }
 
 get {
@@ -11,7 +11,7 @@ get {
 }
 
 auth:bearer {
-  token: {{jwt}}
+  token: {{accessToken}}
 }
 
 settings {
