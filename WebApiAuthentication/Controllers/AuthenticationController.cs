@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using WebApiAuthentication.Authentication;
 using WebApiAuthentication.DTOs;
@@ -88,6 +90,106 @@ public class AuthenticationController(
             RefreshToken = refreshToken
         });
     }
+
+    [HttpPost("refresh")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<LoginResponseDto>> Refresh([FromBody] RefreshDto dto)
+    {
+        _logger.LogInformation("Refresh called");
+
+        var principal = GetPrincipalFromExpiredToken(dto.AccessToken);
+
+        if (principal?.Identity?.Name is null)
+        {
+            return Unauthorized();
+        }
+
+        var user = await _userManager.FindByNameAsync(principal.Identity.Name);
+
+        if (user is null
+            || user.RefreshToken != dto.RefreshToken
+            || user.RefreshTokenExpiry < DateTime.UtcNow)
+        {
+            return Unauthorized();
+        }
+
+        var token = GenerateJwt(principal.Identity.Name);
+
+        var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+        var refreshToken = GenerateRefreshToken();
+
+        await SetRefreshTokenToUser(user, refreshToken);
+
+        _logger.LogInformation("Refresh succeeded");
+
+        return Ok(new LoginResponseDto
+        {
+            JwtToken = jwt,
+            Expiration = token.ValidTo,
+            RefreshToken = refreshToken
+        });
+    }
+
+    [Authorize]
+    [HttpDelete("revoke")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<LoginResponseDto>> Revoke()
+    {
+        _logger.LogInformation("Revoke called");
+
+        var username = HttpContext.User.Identity?.Name;
+
+        if (username is null)
+        {
+            return Unauthorized();
+        }
+
+        var user = await _userManager.FindByNameAsync(username);
+
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        user.RefreshToken = null;
+
+        await _userManager.UpdateAsync(user);
+
+        _logger.LogInformation("Revoke succeded");
+
+        return Ok();
+    }
+
+    private ClaimsPrincipal? GetPrincipalFromExpiredToken(string? token)
+    {
+        var validationParams = new TokenValidationParameters
+        {
+            ValidateLifetime = false,
+            ValidIssuer = _config["Jwt:ValidIssuer"],
+            ValidAudiences = _config.GetSection("Jwt:ValidAudiences").Get<string[]>(),
+            IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(
+                _config["Jwt:Secret"]
+                ?? throw new InvalidOperationException("Secret not configured")))
+        };
+
+        return new JwtSecurityTokenHandler().ValidateToken(token, validationParams, out _);
+    }
+
+    private static string GenerateRefreshToken()
+    {
+        var randomNumber = new byte[64];
+        using var generator = RandomNumberGenerator.Create();
+
+        generator.GetBytes(randomNumber);
+        return Convert.ToBase64String(randomNumber);
+    }
+
     private JwtSecurityToken GenerateJwt(string username)
     {
         List<Claim> authClaims = [
@@ -117,12 +219,15 @@ public class AuthenticationController(
         return token;
     }
 
-        _logger.LogInformation("Login succeeded");
+    private Task SetRefreshTokenToUser(LibraryUser user, string refreshToken)
+    {
+        user.RefreshToken = refreshToken;
 
-        return Ok(new LoginResponseDto
-        {
-            JwtToken = jwt,
-            Expiration = token.ValidTo
-        });
+        int expLapse = Convert.ToInt32(_config["RefreshToken:SecondsToExpire"]
+                ?? throw new InvalidOperationException("Expiration lapse for refresh token not configured"));
+
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddSeconds(expLapse);
+
+        return _userManager.UpdateAsync(user);
     }
 }

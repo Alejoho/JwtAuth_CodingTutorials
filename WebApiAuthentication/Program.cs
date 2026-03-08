@@ -60,7 +60,11 @@ builder.Services.AddAuthentication(opts =>
     opts.Events = new JwtBearerEvents
     {
         OnChallenge = ctx => LogAttempt(ctx.Request.Headers, "OnChallenge"),
-        OnTokenValidated = ctx => LogAttempt(ctx.Request.Headers, "OnTokenValidated")
+        OnTokenValidated = ctx => LogAttempt(ctx.Request.Headers, "OnTokenValidated"),
+        OnAuthenticationFailed = ctx => LogAttempt(ctx.Request.Headers, "OnAuthenticationFailed"),
+        OnForbidden = ctx => LogAttempt(ctx.Request.Headers, "OnForbidden"),
+        OnMessageReceived = ctx => LogAttempt(ctx.Request.Headers, "OnMessageReceived")
+        // See the order of these events at the end of the file
     };
 });
 
@@ -128,8 +132,12 @@ Task LogAttempt(IHeaderDictionary headers, string eventType)
 
     var authorizationHeader = headers["Authorization"].FirstOrDefault();
 
-    if (authorizationHeader is null)
+    if (authorizationHeader is null
+        || authorizationHeader is "Bearer"
+        || authorizationHeader is "Bearer ")
+    {
         logger.LogInformation($"{eventType}. JWT not present");
+    }
     else
     {
         string jwtString = authorizationHeader.Substring("Bearer ".Length);
@@ -141,3 +149,23 @@ Task LogAttempt(IHeaderDictionary headers, string eventType)
 
     return Task.CompletedTask;
 }
+
+/*
+ 
+1-OnMessageReceived
+
+If auth failed becuase of token expired
+
+    2-AuthenticationFailed
+
+    3-OnChallenge
+ 
+If auth succeded
+
+    2-OnTokenValidated
+
+If auth failed because of bad token
+
+
+
+ */
