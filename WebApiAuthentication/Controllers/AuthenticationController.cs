@@ -55,11 +55,12 @@ public class AuthenticationController(
 
         return Ok("User successfully created");
     }
+
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Login([FromBody] LoginDto dto)
+    public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginDto dto)
     {
         _logger.LogInformation("Login called");
 
@@ -70,22 +71,42 @@ public class AuthenticationController(
             return Unauthorized();
         }
 
+        var token = GenerateJwt(dto.Username);
+
+        var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+        var refreshToken = GenerateRefreshToken();
+
+        await SetRefreshTokenToUser(user, refreshToken);
+
+        _logger.LogInformation("Login succeeded");
+
+        return Ok(new LoginResponseDto
+        {
+            JwtToken = jwt,
+            Expiration = token.ValidTo,
+            RefreshToken = refreshToken
+        });
+    }
+    private JwtSecurityToken GenerateJwt(string username)
+    {
         List<Claim> authClaims = [
-            new Claim(ClaimTypes.Name, dto.Username),
+            new Claim(ClaimTypes.Name, username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())];
 
-        var audiences = _config.GetSection("Jwt:ValidAudiences").Get<List<string>>();
+        var audiences = _config.GetSection("Jwt:ValidAudiences").Get<List<string>>()
+            ?? throw new InvalidOperationException("Audiences not configured");
 
         foreach (var audience in audiences)
         {
             authClaims.Add(new Claim(JwtRegisteredClaimNames.Aud, audience));
         }
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-            _config["Jwt:Secret"] ?? throw new InvalidOperationException("Secret not configured")));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Secret"]
+            ?? throw new InvalidOperationException("Secret not configured")));
 
         int expLapse = Convert.ToInt32(_config["Jwt:SecondsToExpire"]
-                ?? throw new InvalidOperationException("Expiration lapse not configured"));
+                ?? throw new InvalidOperationException("Expiration lapse for jwt not configured"));
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:ValidIssuer"],
@@ -93,7 +114,8 @@ public class AuthenticationController(
             claims: authClaims,
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
-        var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+        return token;
+    }
 
         _logger.LogInformation("Login succeeded");
 
