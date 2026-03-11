@@ -38,6 +38,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        Console.WriteLine("Normal Write Line");
+        Console.Out.WriteLine("Out Write Line");
+        await Console.Out.WriteLineAsync("Out Write Line Async");
         // check if the user is logged in by cheking the jwt in storage
         string jwt = await AuthService.GetJwtAsync();
 
@@ -46,6 +49,9 @@
         {
             NavManager.NavigateTo("all-reviews");
         }
+
+        model.Username = "Alejo Hdez";
+        model.Password = "1234Aho.";
     }
 
     private async Task SubmitAsync()

@@ -10,4 +10,10 @@ public interface IAuthenticationService
     Task<DateTime> LoginAsync(LoginDto dto);
     Task LogOutAsync();
     string GetUsername(string jwt);
+    /// <summary>
+    /// Refresh the tokens to access the backend.
+    /// </summary>
+    /// <returns>Returns true if the refresh was successfull, otherwise false.</returns>
+    /// <exception cref="InvalidDataException">Throws this is the content of the response is null</exception>
+    Task<bool> RefreshAsync();
 }
