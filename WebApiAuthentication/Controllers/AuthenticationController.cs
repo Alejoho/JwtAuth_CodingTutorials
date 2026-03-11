@@ -79,7 +79,13 @@ public class AuthenticationController(
 
         var refreshToken = GenerateRefreshToken();
 
-        await SetRefreshTokenToUser(user, refreshToken);
+        var result = await SetRefreshTokenToUser(user, refreshToken);
+
+        if (result.Succeeded is false)
+        {
+            _logger.LogError("Error while saving a refresh token in the DB.");
+            return StatusCode(StatusCodes.Status500InternalServerError);
+        }
 
         _logger.LogInformation("Login succeeded");
 
@@ -121,7 +127,13 @@ public class AuthenticationController(
 
         var refreshToken = GenerateRefreshToken();
 
-        await SetRefreshTokenToUser(user, refreshToken);
+        var result = await SetRefreshTokenToUser(user, refreshToken);
+
+        if (result.Succeeded is false)
+        {
+            _logger.LogError("Error while saving a refresh token in the DB.");
+            return StatusCode(StatusCodes.Status500InternalServerError);
+        }
 
         _logger.LogInformation("Refresh succeeded");
 
@@ -219,7 +231,7 @@ public class AuthenticationController(
         return token;
     }
 
-    private Task SetRefreshTokenToUser(LibraryUser user, string refreshToken)
+    private Task<IdentityResult> SetRefreshTokenToUser(LibraryUser user, string refreshToken)
     {
         user.RefreshToken = refreshToken;
 
