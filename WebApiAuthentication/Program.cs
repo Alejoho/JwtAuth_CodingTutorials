@@ -59,11 +59,11 @@ builder.Services.AddAuthentication(opts =>
     };
     opts.Events = new JwtBearerEvents
     {
-        OnChallenge = ctx => LogAttempt(ctx.Request.Headers, "OnChallenge"),
-        OnTokenValidated = ctx => LogAttempt(ctx.Request.Headers, "OnTokenValidated"),
-        OnAuthenticationFailed = ctx => LogAttempt(ctx.Request.Headers, "OnAuthenticationFailed"),
-        OnForbidden = ctx => LogAttempt(ctx.Request.Headers, "OnForbidden"),
-        OnMessageReceived = ctx => LogAttempt(ctx.Request.Headers, "OnMessageReceived")
+        OnChallenge = ctx => LogAttempt(ctx.Request.Headers, "OnChallenge", ctx.Request.Path),
+        OnTokenValidated = ctx => LogAttempt(ctx.Request.Headers, "OnTokenValidated", ctx.Request.Path),
+        OnAuthenticationFailed = ctx => LogAttempt(ctx.Request.Headers, "OnAuthenticationFailed", ctx.Request.Path),
+        OnForbidden = ctx => LogAttempt(ctx.Request.Headers, "OnForbidden", ctx.Request.Path),
+        OnMessageReceived = ctx => LogAttempt(ctx.Request.Headers, "OnMessageReceived", ctx.Request.Path)
         // See the order of these events at the end of the file
     };
 });
@@ -126,7 +126,7 @@ void PopulateDb()
     db.SaveChanges();
 }
 
-Task LogAttempt(IHeaderDictionary headers, string eventType)
+Task LogAttempt(IHeaderDictionary headers, string eventType, string path)
 {
     var logger = loggerFactory.CreateLogger<Program>();
 
@@ -144,7 +144,16 @@ Task LogAttempt(IHeaderDictionary headers, string eventType)
 
         var jwt = new JwtSecurityToken(jwtString);
 
-        logger.LogInformation($"{eventType}. Expiration: {jwt.ValidTo.ToLongTimeString()}. System time: {DateTime.UtcNow.ToLongTimeString()}");
+        logger.LogInformation("""
+            {0}. 
+            Path: {1}
+            System time: {2}.
+            Expiration: {3}. 
+            """,
+            eventType,
+            path,
+            DateTime.UtcNow.ToLongTimeString(),
+            jwt.ValidTo.ToLongTimeString());
     }
 
     return Task.CompletedTask;
