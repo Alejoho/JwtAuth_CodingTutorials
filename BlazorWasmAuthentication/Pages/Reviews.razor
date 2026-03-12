@@ -1,6 +1,8 @@
 ﻿@using BlazorWasmAuthentication.Models;
 @using BlazorWasmAuthentication.Services;
+@using System.Net
 @inject IReviewRepository Repository
+@inject NavigationManager NavigationManager
 
 @if (ErrorMessage is null)
 {
@@ -51,6 +53,10 @@ else
             .OrderBy(r => r.Title);
 
             ErrorMessage = null;
+        }
+        catch(HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.Unauthorized)
+        {
+            NavigationManager.NavigateTo("login");
         }
         catch
         {

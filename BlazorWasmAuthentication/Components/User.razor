@@ -16,9 +16,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        // check if there is a jwt in session
-        // if there is get the username
+
         string jwt = await _authService.GetJwtAsync();
+
         if(jwt is not null)
         {
             _username = _authService.GetUsername(jwt);
@@ -31,5 +31,5 @@ else
         };
     }
 
-    private async Task LogOutAsync() => await _authService.LogOutAsync();
+    private async Task LogOutAsync() => await _authService.LogOutAsync(callApi: true);
 }

@@ -1,6 +1,7 @@
 ﻿using Blazored.SessionStorage;
 using BlazorWasmAuthentication.DTOs;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Net.Http.Json;
 using System.Security.Claims;
 
@@ -55,21 +56,24 @@ public class AuthenticationService(
         return _jwtCache;
     }
 
-    public async Task LogOutAsync()
+    public async Task LogOutAsync(bool callApi)
     {
         if (string.IsNullOrEmpty(_jwtCache))
         {
             return;
         }
 
-        var client = _factory.CreateClient(ConstantNames.ServerApiHttpClient);
-        var response = await client.DeleteAsync("api/authentication/revoke");
-
-        await Console.Out.WriteLineAsync($"Response status code from the logout: {response.StatusCode}");
-
-        if (response.IsSuccessStatusCode is not true)
+        if (callApi)
         {
-            return;
+            var client = _factory.CreateClient(ConstantNames.ServerApiHttpClient);
+            var response = await client.DeleteAsync("api/authentication/revoke");
+
+            await Console.Out.WriteLineAsync($"Response status code from the logout: {response.StatusCode}");
+
+            if (response.IsSuccessStatusCode is not true)
+            {
+                return;
+            }
         }
 
         await _sessionStorage.RemoveItemAsync(JwtKey);
@@ -87,40 +91,30 @@ public class AuthenticationService(
         return username;
     }
 
-    public async Task<bool> RefreshAsync()
+    public async Task<HttpStatusCode> RefreshAsync()
     {
-        // get the access token
         var accessToken = await _sessionStorage.GetItemAsync<string>(JwtKey);
-        // get the refresh token
         var refreshToken = await _sessionStorage.GetItemAsync<string>(RefreshKey);
-        // create the dto
         var dto = new RefreshDto(accessToken, refreshToken);
-        // post to the backend
+
         var client = _factory.CreateClient(ConstantNames.ServerApiHttpClient);
         var response = await client.PostAsync(
             "api/authentication/refresh",
             JsonContent.Create(dto));
-        // ensure success
+
         if (response.IsSuccessStatusCode is not true)
         {
-            // TODO: Maybe move this line to the authentication handler
-            // if not logout the user
-            await LogOutAsync();
-            return false;
+            return response.StatusCode;
         }
-        // get content
-        var content = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
-        // save both token to session storage
-        if (content is null)
-        {
-            throw new InvalidDataException();
-        }
+
+        var content = await response.Content.ReadFromJsonAsync<LoginResponseDto>()
+            ?? throw new InvalidDataException();
 
         await _sessionStorage.SetItemAsync(JwtKey, content.JwtToken);
         await _sessionStorage.SetItemAsync(RefreshKey, content.RefreshToken);
-        // populate the jwtcache
+
         _jwtCache = content.JwtToken;
-        // and return true
-        return true;
+
+        return response.StatusCode;
     }
 }

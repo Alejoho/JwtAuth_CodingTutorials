@@ -31,11 +31,22 @@ public class AuthenticationHandler(
             {
                 _refreshing = true;
 
-                if (await _authService.RefreshAsync())
+                var refreshResponse = await _authService.RefreshAsync();
+
+                if (refreshResponse is HttpStatusCode.OK)
                 {
                     await TryAddAuthorizationHeader(request);
 
                     response = await base.SendAsync(request, cancellationToken);
+                }
+                else if (refreshResponse is HttpStatusCode.Forbidden)
+                {
+                    await _authService.LogOutAsync(callApi: false);
+                }
+                else if (refreshResponse is HttpStatusCode.Unauthorized)
+                {
+                    // just to check
+                    throw new Exception();
                 }
             }
             finally

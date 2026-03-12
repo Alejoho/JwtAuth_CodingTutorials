@@ -109,7 +109,7 @@ public class AuthenticationController(
 
         if (principal?.Identity?.Name is null)
         {
-            return Unauthorized();
+            return Forbid();
         }
 
         var user = await _userManager.FindByNameAsync(principal.Identity.Name);
@@ -118,7 +118,7 @@ public class AuthenticationController(
             || user.RefreshToken != dto.RefreshToken
             || user.RefreshTokenExpiry < DateTime.UtcNow)
         {
-            return Unauthorized();
+            return Forbid();
         }
 
         var token = GenerateJwt(principal.Identity.Name);
