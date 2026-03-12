@@ -1,0 +1,28 @@
+meta {
+  name: Add A Review
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/bookreviews
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "{{title}}",
+    "rating": {{rating}}
+  }
+}
+
+vars:pre-request {
+  title: bad locol
+  rating: 1
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,16 @@
+meta {
+  name: Get All Reviews
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/bookreviews
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

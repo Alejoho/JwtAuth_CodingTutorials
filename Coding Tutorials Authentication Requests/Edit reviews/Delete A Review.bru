@@ -1,0 +1,27 @@
+meta {
+  name: Delete A Review
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/api/bookreviews/{{id}}
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "{{title}}",
+    "rating": {{rating}}
+  }
+}
+
+vars:pre-request {
+  id: 10
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

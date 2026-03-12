@@ -1,0 +1,30 @@
+meta {
+  name: Edit A Review
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/api/bookreviews/{{id}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "id": {{id}},
+    "title": "{{title}}",
+    "rating": {{rating}}
+  }
+}
+
+vars:pre-request {
+  id: 11
+  title: better
+  rating: 3
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
