@@ -71,7 +71,7 @@ namespace WebApiAuthentication.Controllers
             _reviewRepository.Create(review);
             _reviewRepository.SaveChanges();
 
-            return CreatedAtAction(nameof(Get), new { id = review.Id }, review.Id);
+            return CreatedAtAction(nameof(Get), new { id = review.Id }, review);
         }
 
         [HttpPut("{id:int}")]
