@@ -81,7 +81,7 @@ builder.Services.AddCors(opts =>
 var app = builder.Build();
 
 {
-    PopulateDb();
+    InitializeDb();
 }
 
 if (app.Environment.IsDevelopment())
@@ -102,12 +102,19 @@ app.MapControllers();
 
 app.Run();
 
-void PopulateDb()
+void InitializeDb()
 {
     using var scope = app.Services.CreateScope();
 
     using var db = scope.ServiceProvider.GetRequiredService<ReviewContext>();
 
+    db.Database.Migrate();
+
+    SeedIfEmpty(db);
+}
+
+void SeedIfEmpty(ReviewContext db)
+{
     if (db.BookReviews.Any())
     {
         return;
@@ -125,6 +132,7 @@ void PopulateDb()
 
     db.SaveChanges();
 }
+
 
 Task LogAttempt(IHeaderDictionary headers, string eventType, string path)
 {
