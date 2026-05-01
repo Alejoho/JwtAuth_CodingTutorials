@@ -4,5 +4,8 @@
     <File Path=".gitignore" />
   </Folder>
   <Project Path="BlazorWasmAuthentication/BlazorWasmAuthentication.csproj" />
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
   <Project Path="WebApiAuthentication/WebApiAuthentication.csproj" />
 </Solution>
