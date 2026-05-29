@@ -1,22 +1,48 @@
 services:
 
+  wasmclient:
+    container_name: wasmclient
+    build:
+      context: .
+      dockerfile: BlazorWasmAuthentication/Dockerfile
+    ports:
+      - 8080:80
+      # - 7001:7001
+    depends_on:
+      webapiauthentication:
+        condition: service_healthy
+    # pull_policy: never
+
   webapiauthentication:
     container_name: webapiauthentication
     build:
       context: .
       dockerfile: WebApiAuthentication/Dockerfile
-      environment:
-        - ConnectionStrings__DefaultConnection=Server=sqlserverdb,1433;Initial Catalog=AuthenticatedLibrary;User ID=sa;Password=Pa55w0rD.;TrustServerCertificate=true;
+    environment:
+      ConnectionStrings__DefaultConnection: Server=sqlserverdb,1433;Initial Catalog=AuthenticatedLibrary;User ID=sa;Password=Pa55w0rD.;TrustServerCertificate=true;
     depends_on:
-      - sqlserverdb
+      sqlserverdb:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   sqlserverdb:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sqlserverdb
     ports:
-      - 1433:1433
+      - 11433:1433
     environment:
       - ACCEPT_EULA=Y
       - TZ=America/Havana
       - MSSQL_SA_PASSWORD=Pa55w0rD.
       - MSSQL_PID=Express
+    healthcheck:
+      test: [ "CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Pa55w0rD.", "-C", "-Q", "SELECT 1" ]
+      # test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Pa55w0rD." -C -Q "SELECT 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
