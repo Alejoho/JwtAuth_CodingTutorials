@@ -11,15 +11,12 @@ services:
     depends_on:
       webapiauthentication:
         condition: service_healthy
-    # pull_policy: never
 
   webapiauthentication:
     container_name: webapiauthentication
     build:
       context: .
       dockerfile: WebApiAuthentication/Dockerfile
-    environment:
-      ConnectionStrings__DefaultConnection: Server=sqlserverdb,1433;Initial Catalog=AuthenticatedLibrary;User ID=sa;Password=Pa55w0rD.;TrustServerCertificate=true;
     depends_on:
       sqlserverdb:
         condition: service_healthy
@@ -38,11 +35,10 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - TZ=America/Havana
-      - MSSQL_SA_PASSWORD=Pa55w0rD.
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD:?db password not set}
       - MSSQL_PID=Express
     healthcheck:
-      test: [ "CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Pa55w0rD.", "-C", "-Q", "SELECT 1" ]
-      # test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Pa55w0rD." -C -Q "SELECT 1"
+      test: [ "CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "${DB_PASSWORD:?db password not set}", "-C", "-Q", "SELECT 1" ]
       interval: 10s
       timeout: 5s
       retries: 10

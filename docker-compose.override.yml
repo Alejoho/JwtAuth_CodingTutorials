@@ -6,7 +6,7 @@ services:
       # - ASPNETCORE_HTTPS_PORTS=7000
     ports:
       - 5000:5000
-      - 7000:7000
+      # - 7000:7000
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
