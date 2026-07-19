@@ -23,7 +23,7 @@ In appsettings.json or its related development file:
 - Jwt:SecondsToExpire
 - RefreshToken:SecondsToExpire
 
-With this you should be able to run the projects by its own. But if you want to use docker set this environment variable:
+With this you should be able to run the projects by its own. But if you want to use docker set this environment variable(it needs to match the password in your connection string):
 
 - DB_PASSWORD
 
@@ -71,3 +71,8 @@ Before sending each request, the `AuthenticationHandler` adds the Authorization 
 ## Refresh flow in the frontend
 
 If a request to the API returns 401 (Unauthorized), a request is made to the refresh endpoint. If that response is 200 (OK), the original request is retried with the new JWT. If the refresh response is 403 (Forbidden), the user is logged out.
+
+
+## To improve
+
+If you run the provided command to start the projects with docker it works. But if you try to run the projects using Visual Studio it does not.
